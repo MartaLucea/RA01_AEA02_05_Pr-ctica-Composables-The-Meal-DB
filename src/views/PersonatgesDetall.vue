@@ -1,155 +1,74 @@
 <script setup>
-import { ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useFetch } from '@/composables/useFetch';
+import { watch } from 'vue';
 
+const route = useRoute()
+const router = useRouter()
+const id = String(route.params.id)
+
+const { data, error, loading, refetch } =
+  useFetch(`https://the-one-api.dev/v2/character/${id}`);
+
+const { data:frases, error:errorFrases} =
+  useFetch(`https://the-one-api.dev/v2/character/${id}/quote`);
+
+const { data:movies, error:errorMovies} =
+  useFetch(`https://the-one-api.dev/v2/movie`);
+
+watch(data, (nuevoValor) =>{
+  if (nuevoValor && nuevoValor.docs?.length === 0) {
+    router.replace({ name: 'notfound' })
+  }
+})
+
+const trobarPeli = (id) => {
+  if (!movies.value?.docs) return 'Carregant...'
+
+  const peli = movies.value.docs.find(n => n._id === id)
+
+  return peli ? peli.name : 'Pel·lícula desconeguda'
+}
 
 </script>
 
 <template>
-  <div v-if="recepta" class="recipe-detail-view">
-    <div class="recipe-container-detail">
-      <div class="image-section">
-        <img :src="recepta.imatge" :alt="recepta.nom" class="recipe-img">
-      </div>
-      
-      <div class="content-section">
-        <h1 class="recipe-title">{{ recepta.nom }}</h1>
-        <p class="recipe-description">{{ recepta.descripcio }}</p>
-        
-        <div class="info-block">
-          <p class="section-subtitle">Ingredients</p>
-          <ul class="ingredients-list">
-            <li v-for="(ingredient, index) in recepta.ingredients" :key="index" class="ingredient-item">
-              {{ ingredient }}
-            </li>
-          </ul>
-        </div>
-        
-        <div class="info-block">
-          <p class="section-subtitle">Pas a pas</p>
-          <ol class="steps-list">
-            <li v-for="(pas, index) in recepta.pasAPas" :key="index" class="step-item">
-              {{ pas }}
-            </li>
-          </ol>
-        </div>
+  <div v-if="error">
+    <h2>Hi ha hagut un error al buscar al personatge</h2>
+    <RouterLink :to="`/`" class="back-link">Torna enrere</RouterLink>
+  </div>
+  <p v-else-if="loading">Carregant el personatge...</p>
+  <div v-else class="card">
+      <h1 class="title">{{ data.docs[0].name }}</h1>
+      <RouterLink :to="`/`" class="back-link">Torna enrere</RouterLink>
 
-        <div class="actions">
-          <RouterLink :to="`/receptes`" class="back-link">Torna enrere</RouterLink>
+      <p v-if="data.docs[0].race != null">
+        Raça - {{ data.docs[0].race }}
+      </p>
+      <p v-if="data.docs[0].birth != null">
+        Data de naixement - {{ data.docs[0].birth }}
+      </p>
+      <p v-if="data.docs[0].gender != null">
+        Genere - {{ data.docs[0].gender }}
+      </p>
+      <p v-if="data.docs[0].death != null">
+        Mort - {{ data.docs[0].death }}
+      </p>
+      <p v-if="data.docs[0].hair != null">
+        Color de cabell - {{ data.docs[0].hair }}
+      </p>
+      <p v-if="data.docs[0].realm != null">
+          Regne - {{ data.docs[0].realm }}
+      </p>
+      <p v-if="data.docs[0].spouse != null">
+          Esposa - {{ data.docs[0].spouse }}
+      </p>
+
+      <div v-if="!errorFrases && !errorMovies">
+        <div v-for="f in frases?.docs" :key="f._id">
+            <p>{{ f.dialog }} </p>
+            <p>{{ trobarPeli(f.movie) }}</p>
         </div>
       </div>
     </div>
-  </div>
 </template>
-
-<style scoped>
-@import url('https://googleapis.com');
-
-.recipe-detail-view {
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  padding: 40px;
-  max-width: 900px;
-  margin: 0 auto;
-}
-
-.recipe-container-detail {
-  background: #1e293b;
-  border-radius: 20px;
-  overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-}
-
-.image-section {
-  width: 100%;
-  height: 350px;
-  background: #334155;
-}
-
-.recipe-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.content-section {
-  padding: 40px;
-}
-
-.recipe-title {
-  color: #f8fafc;
-  font-size: 2.25rem;
-  font-weight: 800;
-  margin: 0 0 12px 0;
-}
-
-.recipe-description {
-  color: #94a3b8;
-  font-size: 1.1rem;
-  line-height: 1.6;
-  margin: 0 0 32px 0;
-}
-
-.info-block {
-  margin-bottom: 32px;
-}
-
-.section-subtitle {
-  color: #f8fafc;
-  font-size: 1.25rem;
-  font-weight: 700;
-  margin: 0 0 16px 0;
-}
-
-.ingredients-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 12px;
-}
-
-.ingredient-item {
-  color: #cbd5e1;
-  background: #273549;
-  padding: 10px 16px;
-  border-radius: 8px;
-  font-size: 0.95rem;
-}
-
-.steps-list {
-  padding-left: 20px;
-  margin: 0;
-}
-
-.step-item {
-  color: #cbd5e1;
-  font-size: 1rem;
-  line-height: 1.6;
-  margin-bottom: 12px;
-}
-
-.step-item::marker {
-  color: #3b82f6;
-  font-weight: 700;
-}
-
-.actions {
-  margin-top: 40px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-  padding-top: 24px;
-}
-
-.back-link {
-  display: inline-block;
-  color: #94a3b8;
-  text-decoration: none;
-  font-weight: 700;
-  font-size: 0.95rem;
-  transition: color 0.2s ease;
-}
-
-.back-link:hover {
-  color: #f8fafc;
-}
-</style>
