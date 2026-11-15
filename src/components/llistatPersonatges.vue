@@ -3,7 +3,7 @@
         <p>No hi ha personatges amb aquest nom</p>
     </div>
 
-    <div v-else>
+    <div v-else class="llistat">
         <CartaPersonatge
             v-for="p in personatges"
             :key="p._id"
