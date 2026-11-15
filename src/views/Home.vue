@@ -17,7 +17,7 @@
 
       <llistatPersonatges
         v-else
-        :personatges="personatgesFiltrats"
+        :personatges="personatges"
       />
     </div>
   </main>
@@ -29,21 +29,23 @@ import SearchBar from '@/components/searchBar.vue';
 import llistatPersonatges from '@/components/llistatPersonatges.vue';
 import { useFetch } from '@/composables/useFetch';
 
-const { data, error, loading } =
-  useFetch('https://the-one-api.dev/v2/character?race=Hobbit');
+const cercaAplicada = ref('')
 
-const cercaAplicada = ref('');
+const escaparRegex = (text) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const url = computed(() => {
+  const base = 'https://the-one-api.dev/v2/character?race=Hobbit';
+  const text = cercaAplicada.value.trim();
+  if (!text) return base;
+  return `${base}&name=${encodeURIComponent(`/${escaparRegex(text)}/i`)}`;
+});
+
+const { data, error, loading, refetch } = useFetch(url);
+
+const personatges = computed(() => data.value?.docs ?? []);
 
 const actualitzarCerca = (nouText) => {
   cercaAplicada.value = nouText;
+  refetch();
 };
-
-const personatgesFiltrats = computed(() => {
-  const llista = data.value?.docs ?? [];
-  if (!cercaAplicada.value.trim()) return llista;
-
-  return llista.filter(p =>
-    p.name.toLowerCase().includes(cercaAplicada.value.toLowerCase().trim())
-  );
-});
 </script>

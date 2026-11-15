@@ -7,9 +7,7 @@
         <CartaPersonatge
             v-for="p in personatges"
             :key="p._id"
-            :id="p._id"
-            :nom="p.name"
-            :race="p.race"
+            :personatge="p"
         />
     </div>
 </template>

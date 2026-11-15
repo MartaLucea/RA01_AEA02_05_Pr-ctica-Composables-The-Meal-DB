@@ -1,5 +1,3 @@
-<script setup></script>
-
 <template>
   <div class="app-layout">
     <nav class="navbar">
@@ -7,10 +5,7 @@
     </nav>
 
     <main class="main-content">
-      <RouterView :key="$route.fullPath" />
+      <RouterView />
     </main>
   </div>
 </template>
-
-<style scoped>
-</style>

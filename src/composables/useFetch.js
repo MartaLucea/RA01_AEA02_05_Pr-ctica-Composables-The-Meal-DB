@@ -1,4 +1,4 @@
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, toValue } from 'vue';
 
 export function useFetch(url) {
   const data = ref(null);
@@ -13,11 +13,9 @@ export function useFetch(url) {
     try {
     const token = '4nd0ZXeMcwvmzN4Pee8U';
 
-    const res = await fetch(url,{ 
+    const res = await fetch(toValue(url),{ 
         method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${token}`
-        }
+        headers: { Authorization: `Bearer ${token}`}
     });
       if (!res.ok) {
         throw new Error('Error en la peticio: ' + res.status);
@@ -25,6 +23,7 @@ export function useFetch(url) {
 
       data.value = await res.json();
     } catch (err) {
+      data.value =null
       error.value = err.message;
     } finally {
       loading.value = false;
